@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pet-connect-ingress
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: pet-connect-group
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pet-connect-main-service  # 기본 경로는 로그인 등 메인 페이지를 담당하는 서비스
+            port:
+              number: 80
+      # - path: /main
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: pet-connect-main-service  # /main 경로는 다른 서비스에 연결
+      #       port:
+      #         number: 80
+      - path: /login
+        pathType: Prefix
+        backend:
+          service:
+            name: pet-connect-login-service  # /login 경로는 기존 pet-connect 서비스로 설정
+            port:
+              number: 80
+      # - path: /register
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: pet-connect-login-service  # /login 경로는 기존 pet-connect 서비스로 설정
+      #       port:
+      #         number: 80
+      - path: /animal
+        pathType: Prefix
+        backend:
+          service:
+            name: pet-connect-main-service  # /animal/{Idx} 경로는 pet-connect-main-service로 연결
+            port:
+              number: 80

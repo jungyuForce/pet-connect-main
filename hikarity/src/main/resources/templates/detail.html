@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${animal.SPECIES_NM}">Animal Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4" th:text="${animal.SPECIES_NM}">Animal Title</h1>
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <img th:src="${animal.IMAGE_COURS}" class="img-fluid" alt="Animal image">
+                <p class="mt-4" th:text="'발견 장소 : ' + ${animal.DISCVRY_PLC_INFO}">Animal Description</p>
+                <p class="mt-4" th:text="'나이 : ' + ${animal.AGE_INFO} + '  /  성별 : ' + ${animal.SEX_NM}">Animal Description</p>
+                <p class="mt-4" th:text="'체중 : ' + ${animal.BDWGH_INFO} + '  /  중성화여부 : ' + ${animal.NEUT_YN}">Animal Description</p>
+                <p class="mt-4" th:text="'특징 : ' + ${animal.SFETR_INFO}">Animal Description</p>
+                <a href="/" class="btn btn-primary">Back to Gallery</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

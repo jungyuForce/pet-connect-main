@@ -1,0 +1,220 @@
+<!DOCTYPE html> 
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Gallery</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* 이미지 크기 고정 */
+        .card-img-top {
+            width: 100%; /* 카드의 너비에 맞게 설정 */
+            height: 150px; /* 고정 높이 */
+            object-fit: cover; /* 이미지 비율 유지하면서 잘라내기 */
+        }
+
+        .pagination {
+            flex-wrap: wrap;  /* Allow pagination to wrap on smaller screens */
+        }
+
+        .pagination .page-item .page-link {
+            min-width: 2.5rem; /* 버튼의 최소 너비 설정 */
+            text-align: center; /* 텍스트 정렬 */
+        }
+
+        @media (max-width: 768px) {
+            .col-md-4 {
+                max-width: 50%; /* 작은 화면에서 두 개의 카드 표시 */
+                flex: 0 0 50%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .col-md-4 {
+                max-width: 100%; /* 아주 작은 화면에서 한 개의 카드 표시 */
+                flex: 0 0 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="http://k8s-petconnectgroup-cb3ee8764e-279873253.ap-northeast-2.elb.amazonaws.com">
+                <img src="https://pet-connect-repo.s3.ap-northeast-2.amazonaws.com/pet_connect_logo.png" alt="Logo" width="30" height="30" class="d-inline-block align-top">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/login}">로그인</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/register}">회원가입</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-primary" th:href="@{/pet_register}">실종 펫 등록</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
+
+
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Animal Gallery</h1>
+        
+        <!-- 검색 및 카테고리 기능 -->
+        <div class="row mb-4">
+            
+            <div class="col-md-6">
+                <details>
+                    <summary class="btn btn-secondary">Select Categories</summary>
+                    <div>
+                        <label>
+                            <input type="checkbox" value="개" onchange="filterAnimals()"> 개
+                        </label><br>
+                        <label>
+                            <input type="checkbox" value="고양이" onchange="filterAnimals()"> 고양이
+                        </label><br>
+                        <label>
+                            <input type="checkbox" value="기타" onchange="filterAnimals()"> 기타
+                        </label>
+                    </div>
+                </details>
+            </div>
+            <div class="col-md-6">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search for animals..." oninput="filterAnimals()">
+            </div>
+        </div>
+        
+        
+        <!-- 동물 카드가 여기에 동적으로 추가됩니다 -->
+        <div class="row" id="animal-gallery">
+        </div>
+
+        <!-- Pagination controls -->
+        <nav>
+            <ul class="pagination justify-content-center" id="pagination">
+                <!-- 페이지 버튼은 JavaScript로 추가됩니다 -->
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const itemsPerPage = 9; // 페이지당 아이템 수
+        let currentPage = 0;
+        let totalPages = 0;
+        let animals = []; // 전체 동물 데이터를 저장할 배열
+        let searchInput = ''; // 검색어를 저장할 변수
+        let selectedCategories = []; // 선택된 카테고리를 저장할 변수
+    
+        async function fetchAnimals(page = 0, search = '', categories = []) {
+            try {
+                const categoriesParam = categories.length > 0 ? `&category=${categories.join(',')}` : '';
+                const response = await fetch(`/api/animals?page=${page}&size=${itemsPerPage}&search=${encodeURIComponent(search)}${categoriesParam}`);
+                if (!response.ok) {
+                    throw new Error('네트워크 응답이 좋지 않습니다.');
+                }
+                const data = await response.json(); // JSON 데이터로 변환
+                animals = data.animals; // 전체 동물 데이터를 저장
+                totalPages = data.totalPages; // 총 페이지 수
+                renderAnimals(animals); // 동물 렌더링
+                renderPagination(); // 페이지네이션 렌더링
+            } catch (error) {
+                console.error('문제가 발생했습니다:', error);
+            }
+        }
+    
+        function renderAnimals(animalsToRender) {
+            const animalGallery = document.getElementById('animal-gallery');
+            animalGallery.innerHTML = '';
+    
+            animalsToRender.forEach(animal => {
+                const card = `
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <img src="${animal.IMAGE_COURS}" class="card-img-top" alt="Animal thumbnail">
+                            <div class="card-body">
+                                <h5 class="card-title">${animal.SPECIES_NM}</h5>
+                                <p class="card-text">색상 : ${animal.COLOR_NM}</p>
+                                <a href="/animal/${animal.Idx}" class="btn btn-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                animalGallery.innerHTML += card;
+            });
+        }
+    
+        function filterAnimals() {
+            searchInput = document.getElementById('searchInput').value; // 검색어 저장
+            selectedCategories = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(input => input.value); // 선택된 카테고리 저장
+    
+            currentPage = 0; // 페이지 초기화
+            fetchAnimals(currentPage, searchInput, selectedCategories); // 서버에 요청
+        }
+    
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+    
+            const prevDisabled = currentPage === 0 ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="page-item ${prevDisabled}">
+                    <a class="page-link" href="#" onclick="changePage(currentPage - 1)" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            `;
+    
+            const totalPagesToShow = 10; // 최대 표시할 페이지 수
+            const startPage = Math.max(0, currentPage - Math.floor(totalPagesToShow / 2));
+            const endPage = Math.min(totalPages - 1, startPage + totalPagesToShow - 1);
+    
+            for (let i = startPage; i <= endPage; i++) {
+                const active = i === currentPage ? 'active' : '';
+                pagination.innerHTML += `
+                    <li class="page-item ${active}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i + 1}</a>
+                    </li>
+                `;
+            }
+    
+            const nextDisabled = currentPage === totalPages - 1 ? 'disabled' : '';
+            pagination.innerHTML += `
+                <li class="page-item ${nextDisabled}">
+                    <a class="page-link" href="#" onclick="changePage(currentPage + 1)" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            `;
+        }
+    
+        function changePage(page) {
+            if (page >= 0 && page < totalPages) {
+                currentPage = page;
+                fetchAnimals(currentPage, searchInput, selectedCategories); // 검색어와 카테고리 포함하여 서버에 요청
+            }
+        }
+    
+        // 초기 데이터 가져오기
+        fetchAnimals();
+    </script>
+    
+</body>
+</html>

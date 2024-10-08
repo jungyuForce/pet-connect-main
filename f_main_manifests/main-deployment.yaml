@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pet-connect-main-deployment
+  labels:
+    app: pet-connect-main
+spec:
+  replicas: 2 # 사용할 파드의 개수
+  selector:
+    matchLabels:
+      app: pet-connect-main
+  template:
+    metadata:
+      labels:
+        app: pet-connect-main
+    spec:
+      containers:
+      - name: pet-connect-main
+        image: 975050133565.dkr.ecr.ap-northeast-2.amazonaws.com/pet-connect-main
+        ports:
+        - containerPort: 8081

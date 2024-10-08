@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pet-connect-main-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: pet-connect-main
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8081
